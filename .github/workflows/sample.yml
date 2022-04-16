@@ -15,5 +15,3 @@ jobs:
 
       - name: Run a one-line script
         run: echo Hello, world! # Hello, world!と出力する
-
-
