@@ -1,0 +1,47 @@
+# .github/workflows/deploy.yaml
+
+name: release
+on:
+  push:
+    branches: deploy
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Check the contents of the file
+        uses: actions/checkout@v1
+        with:
+          ref: 'deploy'
+
+      - name: Configration on Ubuntu 20.04
+        uses: actions/setup-node@v1
+        with:
+          node-version: '10.x'
+
+      - name: Deploy configration
+        run: |
+          mkdir ~/.ssh
+          ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+          echo "${{ secrets.ACTIONS_DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 400 ~/.ssh/id_rsa
+
+      - name: Build
+        run: |
+          yarn install
+          yarn next build
+
+      - name: Push to GitHub
+        env:
+          GITHUB_USER: 'user_name'
+          GITHUB_EMAIL: 'user_email'
+        run: |
+          git config --local user.name "${GITHUB_USER}"
+          git config --local user.email "${GITHUB_EMAIL}"
+          git remote set-url origin git@github.com:${GITHUB_REPOSITORY}.git
+          git add -f docs
+          git add .
+          git commit -m "Building website"
+          git push -f origin HEAD:master
+ 
